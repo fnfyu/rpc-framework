@@ -10,6 +10,9 @@ import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import org.dto.RpcRequest;
 import org.dto.RpcResponse;
+import org.serializer.KryoSerializer;
+import org.serializer.MyRpcDecoder;
+import org.serializer.MyRpcEncoder;
 
 public class NettyClientTransport {
     private static final EventLoopGroup group = new NioEventLoopGroup();
@@ -24,12 +27,12 @@ public class NettyClientTransport {
         bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<>() {
             @Override
             protected void initChannel(Channel channel) throws InterruptedException {
-                channel.pipeline().addLast(new ObjectEncoder());
-                channel.pipeline().addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+                channel.pipeline().addLast(new MyRpcEncoder(new KryoSerializer()));
+                channel.pipeline().addLast(new MyRpcDecoder(new KryoSerializer(),RpcResponse.class));
                 channel.pipeline().addLast(new SimpleChannelInboundHandler<RpcResponse>() {
                     @Override
                     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse) throws Exception {
-                        //System.out.println("[客户端收到执行结果]"+o);
+                        System.out.println("[客户端收到执行结果]"+rpcResponse);
                         UnprocessedRequests.complete(rpcResponse.getRequestId(), rpcResponse.getResult());
                     }
                 });
@@ -41,7 +44,7 @@ public class NettyClientTransport {
     public void send(RpcRequest rpcRequest) throws Exception {
         if (channel==null || !channel.isActive()) {
             channel = bootstrap.connect(host, port).sync().channel();
-            System.out.println("建立连接");
+            //System.out.println("建立连接");
         }
 
         channel.writeAndFlush(rpcRequest);

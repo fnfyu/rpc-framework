@@ -2,18 +2,20 @@ package org.client;
 
 import lombok.AllArgsConstructor;
 import org.dto.RpcRequest;
+import org.registry.ServiceRegistry;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class RpcClientProxy implements InvocationHandler {
-    NettyClientTransport transport;
+    private ServiceRegistry registry;
 
-    public  RpcClientProxy(String host, int port) {
-        transport = new NettyClientTransport(host, port);
+    public RpcClientProxy(ServiceRegistry registry) {
+        this.registry= registry;
     }
 
     //它返回一个接口的伪装对象
@@ -28,10 +30,11 @@ public class RpcClientProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String requestId = UUID.randomUUID().toString();
+        String serviceName = method.getDeclaringClass().getName();
         // 1. 把“谁想调谁”打包成包裹
         RpcRequest rpcRequest = new RpcRequest(
                 requestId,
-                method.getDeclaringClass().getName(),
+                serviceName,
                 method.getName(),
                 args,
                 method.getParameterTypes()
@@ -40,18 +43,22 @@ public class RpcClientProxy implements InvocationHandler {
         CompletableFuture<Object> future = new CompletableFuture<>();
         UnprocessedRequests.put(requestId, future);
 
-        // 2. 启动 Netty 客户端发包 (这里我们可以复用之前的 NettyClient 逻辑)
-
+        // 2. 启动 Netty 客户端发包
+        InetSocketAddress inetSocketAddress=registry.lookupService(serviceName);
+        if (inetSocketAddress==null){
+            throw new RuntimeException("错误：中介那没查到这个服务的地址！");
+        }
+        NettyClientTransport transport=new NettyClientTransport(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
         transport.send(rpcRequest);
 
         return future.get();
     }
 
-    public void shutdown() {
-        try {
-            transport.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public void shutdown() {
+//        try {
+//            transport.close();
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }
