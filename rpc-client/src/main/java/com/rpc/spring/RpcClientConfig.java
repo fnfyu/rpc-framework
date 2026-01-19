@@ -1,8 +1,8 @@
 package com.rpc.spring;
 
 import com.rpc.client.RpcClientProxy;
-import com.rpc.registry.ServiceRegistry;
-import com.rpc.registry.ZkServiceRegistry;
+import com.rpc.discovery.ServiceDiscovery;
+import com.rpc.discovery.ZKServiceDiscovery;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -11,12 +11,12 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan("com.rpc")
 public class RpcClientConfig {
     @Bean
-    public ServiceRegistry serviceRegistry(){
-        return new ZkServiceRegistry();
+    public ServiceDiscovery serviceRegistry(){
+        return new ZKServiceDiscovery();
     }
 
     @Bean
-    public RpcClientProxy rpcClientProxy(ServiceRegistry serviceRegistry){
+    public RpcClientProxy rpcClientProxy(ServiceDiscovery serviceRegistry){
         return new RpcClientProxy(serviceRegistry);
     }
 }

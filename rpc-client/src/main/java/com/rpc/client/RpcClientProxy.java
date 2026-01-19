@@ -1,7 +1,8 @@
 package com.rpc.client;
 
+import com.rpc.config.RpcConfig;
+import com.rpc.discovery.ServiceDiscovery;
 import com.rpc.dto.RpcRequest;
-import com.rpc.registry.ServiceRegistry;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -14,11 +15,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class RpcClientProxy implements InvocationHandler {
-    private ServiceRegistry registry;
+    private ServiceDiscovery discovery;
     private NettyClientTransport transport=new NettyClientTransport();
 
-    public RpcClientProxy(ServiceRegistry registry) {
-        this.registry= registry;
+    public RpcClientProxy(ServiceDiscovery registry) {
+        this.discovery= registry;
     }
 
     //它返回一个接口的伪装对象
@@ -46,15 +47,15 @@ public class RpcClientProxy implements InvocationHandler {
 
 
 
-        int retryTimes = 3;
+        int retryTimes = RpcConfig.retryTimes;
         Exception lastException = null;
         for (int i = 0; i < retryTimes; i++) {
             CompletableFuture<Object> future = new CompletableFuture<>();
             UnprocessedRequests.put(requestId, future);
             // 2. 启动 Netty 客户端发包
-            InetSocketAddress inetSocketAddress=registry.lookupService(serviceName);
+            InetSocketAddress inetSocketAddress=discovery.lookupService(serviceName);
             if (inetSocketAddress==null){
-                throw new RuntimeException("错误：中介那没查到这个服务的地址！");
+                System.out.println("错误：中介那没查到这个服务的地址！");
             }
 
             transport.send(rpcRequest,inetSocketAddress.getHostName(),inetSocketAddress.getPort());

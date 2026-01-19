@@ -34,6 +34,7 @@ public class MyRpcDecoder extends ByteToMessageDecoder {
         //System.out.println(version);
         byte serializerType= byteBuf.readByte();
         serializer=SerializerFactory.getSerialierByCode(serializerType);
+        //serializer=SerializerFactory.getSerializer();
         //System.out.println(serializerType);
         int length= byteBuf.readInt();
         //System.out.println(length);
@@ -49,7 +50,7 @@ public class MyRpcDecoder extends ByteToMessageDecoder {
         // 根据 serializeType 找到对应的序列化器并还原对象...
         // 这里暂时假设咱们收到的就是 RpcRequest 或 RpcResponse
         Object object=serializer.deserialize(bytes,clazz);// 你的序列化器.deserialize(body, ...);
-       // System.out.println(object);
+        //System.out.println(object);
         list.add(object);
 
 

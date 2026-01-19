@@ -1,5 +1,6 @@
 package com.rpc.spring;
 
+import com.rpc.config.RpcConfig;
 import com.rpc.registry.ServiceRegistry;
 import com.rpc.registry.ZkServiceRegistry;
 import com.rpc.server.NettyServerTransport;
@@ -15,7 +16,7 @@ public class RpcServerConfig {
 
     @Bean
     public NettyServerTransport serverTransport(){
-        return new NettyServerTransport(12345);
+        return new NettyServerTransport(RpcConfig.port);
     }
 
 }

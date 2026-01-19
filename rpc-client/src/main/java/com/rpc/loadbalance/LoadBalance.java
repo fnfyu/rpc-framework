@@ -1,4 +1,4 @@
-package com.rpc.balance;
+package com.rpc.loadbalance;
 
 import java.util.List;
 

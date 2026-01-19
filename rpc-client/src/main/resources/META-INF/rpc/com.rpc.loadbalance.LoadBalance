@@ -1,0 +1,2 @@
+random=com.rpc.loadbalance.RandomLoadBalance
+roundRobin=com.rpc.loadbalance.RoundRobinLoadBalance

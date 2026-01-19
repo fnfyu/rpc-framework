@@ -5,16 +5,16 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Getter;
 import com.rpc.dto.RpcRequest;
 import com.rpc.dto.RpcResponse;
-import com.rpc.serializer.KryoSerializer;
 import com.rpc.serializer.MyRpcDecoder;
 import com.rpc.serializer.MyRpcEncoder;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -45,7 +45,7 @@ public class NettyServerTransport {
 
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(new MyRpcEncoder(new KryoSerializer()));
+                            socketChannel.pipeline().addLast(new MyRpcEncoder());
                             socketChannel.pipeline().addLast(new MyRpcDecoder(RpcRequest.class));
                             socketChannel.pipeline().addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS)); // 30秒没收到客户端消息，就触发“读空闲”
                             socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<RpcRequest>() {

@@ -10,6 +10,7 @@ public class KryoSerializer implements Serializer {
     private record KryoHolder(Kryo kryo, Output output, Input input) {
 
     }
+
     // 使用 ThreadLocal 保证每个线程都有自己的 Kryo 实例
     private final ThreadLocal<KryoHolder> kryoThreadLocal = ThreadLocal.withInitial(()-> {
         Kryo kryo = new Kryo();

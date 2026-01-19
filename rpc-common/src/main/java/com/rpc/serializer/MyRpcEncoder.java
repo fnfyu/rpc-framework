@@ -1,5 +1,6 @@
 package com.rpc.serializer;
 
+import com.rpc.config.RpcConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -8,8 +9,8 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class MyRpcEncoder extends MessageToByteEncoder<Object> {
     private final Serializer serializer;
 
-    public MyRpcEncoder(Serializer serializer) {
-        this.serializer=serializer;
+    public MyRpcEncoder() {
+        this.serializer=SerializerFactory.getSerializer();
     }
 
     @Override

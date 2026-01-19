@@ -29,12 +29,12 @@ public class NettyClientTransport {
                 handler(new ChannelInitializer<>() {
             @Override
             protected void initChannel(Channel channel) {
-                channel.pipeline().addLast(new MyRpcEncoder(new KryoSerializer()));
+                channel.pipeline().addLast(new MyRpcEncoder());
                 channel.pipeline().addLast(new MyRpcDecoder(RpcResponse.class));
                 channel.pipeline().addLast(new IdleStateHandler(0,5,0, TimeUnit.SECONDS));
                 channel.pipeline().addLast(new SimpleChannelInboundHandler<RpcResponse>() {
                     @Override
-                    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
                         if (evt instanceof IdleStateEvent) {
                             IdleState state = ((IdleStateEvent) evt).state();
                             if (state == IdleState.WRITER_IDLE) {
@@ -43,7 +43,11 @@ public class NettyClientTransport {
                                 channel.writeAndFlush(heartbeat).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
                             }
                             else {
-                                super.userEventTriggered(ctx, evt);
+                                try {
+                                    super.userEventTriggered(ctx, evt);
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                         }
                     }
@@ -68,7 +72,6 @@ public class NettyClientTransport {
             }
             else {
                 channel = bootstrap.connect(host, port).sync().channel();
-                System.out.println("!");
                 ChannelProvider.set(host,port,channel);
             }
             channel.writeAndFlush(rpcRequest);

@@ -1,5 +1,6 @@
 package com.rpc;
 
+import com.rpc.serializer.MyRpcEncoder;
 import com.rpc.server.NettyServerTransport;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -21,6 +22,14 @@ public class RpcServerApp implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // 当 Spring 把所有 Bean（包括你的服务）都注册好后，启动 Netty
-        transport.start();
+        // 另起炉灶，不要卡死 Spring 的主线程
+        new Thread(() -> {
+            try {
+                MyRpcEncoder encoder = new MyRpcEncoder();
+                transport.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, "netty-server-thread").start();
     }
 }
